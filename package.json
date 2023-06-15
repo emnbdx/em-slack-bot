@@ -1,0 +1,21 @@
+{
+  "dependencies": {
+    "@slack/bolt": "^3.13.1",
+    "@slack/web-api": "^6.8.1"
+  },
+  "name": "em-slack-bot",
+  "version": "1.0.0",
+  "main": "app.js",
+  "devDependencies": {
+    "dotenv": "^16.1.4",
+    "nodemon": "^2.0.22"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon app.js --trace-warnings"
+  },
+  "keywords": [],
+  "author": "emnbdx",
+  "license": "ISC",
+  "description": "Usefull things for slack"
+}
