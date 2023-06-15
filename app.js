@@ -60,7 +60,7 @@ app.command("/cagnotte", async ({ command, ack, say }) => {
                         "text": "Valider",
                         "emoji": true
                     },
-                    "value": command.user_id + "_" + result.channel.id,
+                    "value": `${command.user_id}_${result.channel.id}`,
                     "action_id": "validate"
                 }
             ]
@@ -113,7 +113,7 @@ app.action('validate', async ({ action, ack, say }) => {
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": "Je vais inviter :\n" + Object.values(members).sort().join('\n')
+                "text": `Je vais inviter :\n${Object.values(members).sort().join('\n')}`
             }
         },
         {
@@ -126,7 +126,7 @@ app.action('validate', async ({ action, ack, say }) => {
                         "text": "C'est ok 🚀",
                         "emoji": true
                     },
-                    "value": Object.keys(members).join(','),
+                    "value": `${channelId}_${Object.keys(members).join(',')}`,
                     "action_id": "invite"
                 }
             ]
@@ -143,9 +143,13 @@ app.action('validate', async ({ action, ack, say }) => {
 app.action('invite', async ({ action, ack, say }) => {
     await ack()
 
+    let param = action.value.split('_')
+    let channelId = param[0]
+    let users = param[1]
+
     client.conversations.invite({
         channel: channelId,
-        users: action.value
+        users: users
     })
 });
 
