@@ -19,7 +19,7 @@ app.command("/cagnotte", async ({ command, ack, say }) => {
     try {
         result = await client.conversations.create({
             name: command.text,
-            private: true
+            is_private: true
         });
     } catch (e) {
         await say(`Erreur lors de la création du canal -> ${e.data.error}`)
