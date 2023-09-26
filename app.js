@@ -22,7 +22,7 @@ app.command("/cagnotte", async ({ command, ack, say }) => {
             is_private: true
         });
     } catch (e) {
-        await say(`Erreur lors de la création du canal -> ${e.data.error}`)
+        await say(`Erreur lors de la création du canal -> ${e.data.error} pour en savoir plus sur cette erreur : https://api.slack.com/methods/conversations.create#errors`)
         return
     }
 
