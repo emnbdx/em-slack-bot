@@ -93,7 +93,7 @@ app.action('validate', async ({ action, ack, say }) => {
     })
 
     const result = await client.conversations.list()
-    const general = result.channels.filter((el) => el.name == "general")[0]
+    const general = result.channels.filter((el) => el.name == process.env.SLACK_GENERAL_CHAN)[0]
 
     let members = {};
     for await (const result of client.paginate('conversations.members', {channel: general.id})) {
