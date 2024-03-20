@@ -10,6 +10,7 @@ const app = new App({
 const client = new WebClient(process.env.SLACK_BOT_TOKEN)
 
 let excluded = {}
+let members = {}
 
 app.command("/cagnotte", async ({ command, ack, say }) => {
     await ack();
@@ -30,6 +31,8 @@ app.command("/cagnotte", async ({ command, ack, say }) => {
         channel: result.channel.id,
         users: command.user_id
     });
+
+    excluded = {}
 
     const output = [
         {
@@ -95,7 +98,7 @@ app.action('validate', async ({ action, ack, say }) => {
     const result = await client.conversations.list()
     const general = result.channels.filter((el) => el.name == process.env.SLACK_GENERAL_CHAN)[0]
 
-    let members = {};
+    members = {};
     for await (const result of client.paginate('conversations.members', {channel: general.id})) {
         for await (const id of result.members) {
             const info = await client.users.info({user: id, deleted: false, is_bot: false})
@@ -126,7 +129,7 @@ app.action('validate', async ({ action, ack, say }) => {
                         "text": "C'est ok 🚀",
                         "emoji": true
                     },
-                    "value": `${channelId}_${Object.keys(members).join(',')}`,
+                    "value": channelId,
                     "action_id": "invite"
                 }
             ]
@@ -143,13 +146,9 @@ app.action('validate', async ({ action, ack, say }) => {
 app.action('invite', async ({ action, ack, say }) => {
     await ack()
 
-    let param = action.value.split('_')
-    let channelId = param[0]
-    let users = param[1]
-
     client.conversations.invite({
-        channel: channelId,
-        users: users
+        channel: action.value,
+        users: Object.keys(members).join(',')
     })
 });
 
