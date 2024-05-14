@@ -11,7 +11,6 @@
     "nodemon": "^2.0.22"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon app.js --trace-warnings"
   },
   "keywords": [],
