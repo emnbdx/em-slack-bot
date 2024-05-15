@@ -1,6 +1,5 @@
 const { App } = require("@slack/bolt")
 const { WebClient } = require('@slack/web-api')
-require("dotenv").config()
 
 // Initializes your app with your bot token and signing secret
 const app = new App({
@@ -153,8 +152,8 @@ app.action('invite', async ({ action, ack, say }) => {
 });
 
 (async () => {
-    const port = 3210
+    const port = process.env.PORT || 3000
     // Start your app
-    await app.start(process.env.PORT || port)
+    await app.start(port)
     console.log(`⚡️ Slack Bolt app is running on port ${port}!`)
 })();
