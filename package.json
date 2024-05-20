@@ -6,6 +6,9 @@
   "repository": "git@github.com:emnbdx/em-slack-bot.git",
   "author": "emnbdx <eddy.montus@gmail.com>",
   "license": "GPL-3.0",
+  "scripts": {
+    "start": "node app.js"
+  },
   "dependencies": {
     "@slack/bolt": "^3.13.1",
     "@slack/web-api": "^6.8.1"
