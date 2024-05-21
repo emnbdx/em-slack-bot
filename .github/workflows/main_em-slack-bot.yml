@@ -26,7 +26,7 @@ jobs:
           yarn install
 
       - name: Zip artifact for deployment
-        run: zip -r release.zip ./* .yarnrc.yml .yarn .pnp*
+        run: zip -r release.zip ./* .yarnrc.yml .yarn
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v3

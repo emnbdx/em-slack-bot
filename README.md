@@ -37,7 +37,7 @@ STATIC_EXCLUDE is a comma-separated list of user IDs that should be excluded whe
 ## Running the Bot
 To start the bot in a development environment, use the following command:
    ```shell
-   yarn run dev
+   yarn start
    ```
 
 The bot should now be running and ready to respond to /cagnotte commands on Slack.
