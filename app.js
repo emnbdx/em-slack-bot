@@ -1,5 +1,6 @@
 const { App } = require("@slack/bolt")
 const { WebClient } = require('@slack/web-api')
+require("dotenv").config()
 
 // Initializes your app with your bot token and signing secret
 const app = new App({

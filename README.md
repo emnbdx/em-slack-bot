@@ -27,9 +27,12 @@ To use this bot, you'll need:
    ```shell
    SLACK_SIGNING_SECRET=
    SLACK_BOT_TOKEN=
+   SLACK_GENERAL_CHAN=
    STATIC_EXCLUDE=
    ```
-The SLACK_SIGNING_SECRET and SLACK_BOT_TOKEN are available from your app settings on Slack's development portal. The STATIC_EXCLUDE is a comma-separated list of user IDs that should be excluded when inviting users to a new channel.
+SLACK_SIGNING_SECRET and SLACK_BOT_TOKEN are available from your app settings on Slack's development portal. 
+SLACK_GENERAL_CHAN is the main chan of you slack (by default general) i use this chan to get all users.
+STATIC_EXCLUDE is a comma-separated list of user IDs that should be excluded when inviting users to a new channel.
 
 ## Running the Bot
 To start the bot in a development environment, use the following command:
