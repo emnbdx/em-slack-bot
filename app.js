@@ -2,7 +2,6 @@ const { App } = require("@slack/bolt")
 const { WebClient } = require('@slack/web-api')
 require("dotenv").config()
 
-// Initializes your app with your bot token and signing secret
 const app = new App({
     token: process.env.SLACK_BOT_TOKEN,
     signingSecret: process.env.SLACK_SIGNING_SECRET
@@ -12,7 +11,7 @@ const client = new WebClient(process.env.SLACK_BOT_TOKEN)
 let excluded = {}
 let members = {}
 
-app.command("/cagnotte", async ({ command, ack, say }) => {
+app.command("/cagnotte", async({ command, ack, say }) => {
     await ack();
 
     let result
@@ -34,8 +33,7 @@ app.command("/cagnotte", async ({ command, ack, say }) => {
 
     excluded = {}
 
-    const output = [
-        {
+    const output = [{
             "type": "input",
             "block_id": result.channel.id,
             "element": {
@@ -55,18 +53,16 @@ app.command("/cagnotte", async ({ command, ack, say }) => {
         },
         {
             "type": "actions",
-            "elements": [
-                {
-                    "type": "button",
-                    "text": {
-                        "type": "plain_text",
-                        "text": "Valider",
-                        "emoji": true
-                    },
-                    "value": `${command.user_id}_${result.channel.id}`,
-                    "action_id": "validate"
-                }
-            ]
+            "elements": [{
+                "type": "button",
+                "text": {
+                    "type": "plain_text",
+                    "text": "Valider",
+                    "emoji": true
+                },
+                "value": `${command.user_id}_${result.channel.id}`,
+                "action_id": "validate"
+            }]
         }
     ]
 
@@ -77,12 +73,12 @@ app.command("/cagnotte", async ({ command, ack, say }) => {
     })
 });
 
-app.action('exclude_user', async ({ action, ack, say }) => {
+app.action('exclude_user', async({ action, ack, say }) => {
     await ack();
     excluded[action.block_id] = action.selected_users
 });
 
-app.action('validate', async ({ action, ack, say }) => {
+app.action('validate', async({ action, ack, say }) => {
     await ack()
 
     let param = action.value.split('_')
@@ -99,20 +95,21 @@ app.action('validate', async ({ action, ack, say }) => {
     const general = result.channels.filter((el) => el.name == process.env.SLACK_GENERAL_CHAN)[0]
 
     members = {};
-    for await (const result of client.paginate('conversations.members', {channel: general.id})) {
-        for await (const id of result.members) {
-            const info = await client.users.info({user: id, deleted: false, is_bot: false})
-            members[info.user.id] = info.user.real_name
+    for await (const page of client.paginate('conversations.members', { channel: general.id })) {
+        for (const id of page.members) {
+            const info = await client.users.info({ user: id })
+            if (!info.user.deleted && !info.user.is_bot) {
+                members[info.user.id] = info.user.real_name
+            }
         }
     }
 
     let exclude = process.env.STATIC_EXCLUDE.split(',')
     exclude = exclude.concat(excluded[channelId])
-    
+
     exclude.forEach((el) => delete members[el])
 
-    const output = [
-        {
+    const output = [{
             "type": "section",
             "text": {
                 "type": "mrkdwn",
@@ -121,18 +118,16 @@ app.action('validate', async ({ action, ack, say }) => {
         },
         {
             "type": "actions",
-            "elements": [
-                {
-                    "type": "button",
-                    "text": {
-                        "type": "plain_text",
-                        "text": "C'est ok 🚀",
-                        "emoji": true
-                    },
-                    "value": channelId,
-                    "action_id": "invite"
-                }
-            ]
+            "elements": [{
+                "type": "button",
+                "text": {
+                    "type": "plain_text",
+                    "text": "C'est ok 🚀",
+                    "emoji": true
+                },
+                "value": channelId,
+                "action_id": "invite"
+            }]
         }
     ]
 
@@ -143,7 +138,7 @@ app.action('validate', async ({ action, ack, say }) => {
     })
 });
 
-app.action('invite', async ({ action, ack, say }) => {
+app.action('invite', async({ action, ack, say }) => {
     await ack()
 
     client.conversations.invite({
@@ -152,9 +147,8 @@ app.action('invite', async ({ action, ack, say }) => {
     })
 });
 
-(async () => {
+(async() => {
     const port = process.env.PORT || 3000
-    // Start your app
     await app.start(port)
     console.log(`⚡️ Slack Bolt app is running on port ${port}!`)
 })();
