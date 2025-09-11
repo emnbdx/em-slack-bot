@@ -130,3 +130,5 @@ dist
 !.yarn/versions
 
 .pnp.*
+data/
+*.log
