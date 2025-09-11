@@ -62,20 +62,46 @@ class AperallManager {
         const hour = now.getHours()
 
         if (args.length === 0) {
-            if (hour < 18) {
+            const timeStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+
+            if (hour >= 0 && hour < 9) {
                 const messages = [
-                    "🤔 C'est pas encore l'apérall ! Il est que " + now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                    "😴 Trop tôt pour l'apérall ! Reviens après 18h",
-                    "🍺 Patience ! L'apérall c'est après 18h",
-                    "⏰ Encore " + (18 - hour) + "h avant l'apérall !"
+                    "😴 Tu devrais dormir ! Il est " + timeStr + " et l'apérall c'est après 18h",
+                    "🌙 C'est l'heure de faire dodo ! L'apérall attendra demain soir",
+                    "🛌 " + timeStr + " ? Va te coucher ! L'apérall c'est pour les gens éveillés",
+                    "💤 Tu rêves d'apérall ? Réveille-toi d'abord ! Il est " + timeStr
+                ]
+                return messages[Math.floor(Math.random() * messages.length)]
+            } else if (hour >= 9 && hour < 12) {
+                const messages = [
+                    "☕ C'est plutôt l'heure du café ! L'apérall c'est après 18h",
+                    "🌅 " + timeStr + " ? Un petit café d'abord, l'apérall attendra ce soir",
+                    "☀️ Bonjour ! Café d'abord, apérall plus tard (après 18h)",
+                    "☕ Réveille-toi avec un café ! L'apérall c'est pour ce soir"
+                ]
+                return messages[Math.floor(Math.random() * messages.length)]
+            } else if (hour >= 12 && hour < 14) {
+                const messages = [
+                    "🍽️ Bien tenté ! Mais c'est l'heure du déj, l'apérall c'est après 18h",
+                    "🥗 " + timeStr + " ? Déjà l'apérall ? Non, c'est l'heure du déjeuner !",
+                    "🍴 Déjeune d'abord ! L'apérall c'est pour ce soir après 18h",
+                    "🥪 Pas encore ! C'est l'heure du repas, l'apérall attendra"
+                ]
+                return messages[Math.floor(Math.random() * messages.length)]
+            } else if (hour >= 14 && hour < 18) {
+                const messages = [
+                    "💪 Allez encore un effort ! L'apérall c'est dans " + (18 - hour) + "h",
+                    "⏰ " + timeStr + " ? Patience ! Encore " + (18 - hour) + "h avant l'apérall",
+                    "🏃‍♂️ Courage ! L'apérall approche, plus que " + (18 - hour) + "h à tenir",
+                    "⏳ Bientôt ! L'apérall c'est à 18h, encore " + (18 - hour) + "h de patience"
                 ]
                 return messages[Math.floor(Math.random() * messages.length)]
             } else {
                 const messages = [
-                    "🍻 C'est l'heure de l'apérall ! Profitez bien !",
-                    "🥂 L'apérall a commencé ! Santé !",
-                    "🍷 Moment parfait pour un apérall !",
-                    "🍸 C'est parti pour l'apérall !"
+                    "🍻 Let's go ! C'est l'heure de l'apérall ! Profite bien !",
+                    "🥂 " + timeStr + " ? Parfait ! L'apérall a commencé, santé !",
+                    "🍷 Moment parfait pour un apérall ! C'est parti !",
+                    "🍸 " + timeStr + " ? C'est l'heure ! L'apérall est lancé !"
                 ]
                 return messages[Math.floor(Math.random() * messages.length)]
             }
@@ -152,7 +178,15 @@ class AperallManager {
                 this.organizers[channelId] = newSelection
                 await this.saveData()
                 const organizers = newSelection.map(id => `<@${id}>`).join(' et ')
-                return `🎲 Nouvelle sélection pour ${monthName} ! Les organisateurs de l'apérall sont : ${organizers}`
+
+                const themeMessages = [
+                    `🎲 Nouvelle sélection pour ${monthName} ! Les organisateurs de l'apérall sont : ${organizers}\n\nUn apérall c'est mieux avec un thème non ? Ce sera quoi le vôtre ${organizers} ?`,
+                    `🎲 Nouvelle sélection pour ${monthName} ! Les organisateurs de l'apérall sont : ${organizers}\n\nAllez ${organizers}, à vous de choisir le thème de l'apérall !`,
+                    `🎲 Nouvelle sélection pour ${monthName} ! Les organisateurs de l'apérall sont : ${organizers}\n\n${organizers}, c'est parti pour l'organisation ! Quel thème allez-vous nous proposer ?`,
+                    `🎲 Nouvelle sélection pour ${monthName} ! Les organisateurs de l'apérall sont : ${organizers}\n\n${organizers}, à vous de jouer ! Quel sera le thème de cet apérall ?`
+                ]
+
+                return themeMessages[Math.floor(Math.random() * themeMessages.length)]
             }
 
             const shuffled = availableMembers.sort(() => 0.5 - Math.random())
@@ -162,7 +196,14 @@ class AperallManager {
             await this.saveData()
             const organizers = selected.map(id => `<@${id}>`).join(' et ')
 
-            return `🎲 Tirage pour ${monthName} ! Les organisateurs de l'apérall sont : ${organizers}\n\nSi vous ne pouvez pas organiser, utilisez \`/aperall cmort\` pour être remplacé !`
+            const themeMessages = [
+                `🎲 Tirage pour ${monthName} ! Les organisateurs de l'apérall sont : ${organizers}\n\nUn apérall c'est mieux avec un thème non ? Ce sera quoi le vôtre ${organizers} ?`,
+                `🎲 Tirage pour ${monthName} ! Les organisateurs de l'apérall sont : ${organizers}\n\nAllez ${organizers}, à vous de choisir le thème de l'apérall !`,
+                `🎲 Tirage pour ${monthName} ! Les organisateurs de l'apérall sont : ${organizers}\n\n${organizers}, c'est parti pour l'organisation ! Quel thème allez-vous nous proposer ?`,
+                `🎲 Tirage pour ${monthName} ! Les organisateurs de l'apérall sont : ${organizers}\n\n${organizers}, à vous de jouer ! Quel sera le thème de cet apérall ?`
+            ]
+
+            return themeMessages[Math.floor(Math.random() * themeMessages.length)] + `\n\nSi vous ne pouvez pas organiser, utilisez \`/aperall cmort\` pour être remplacé !`
         } catch (error) {
             return `❌ Erreur lors de la sélection : ${error.message}`
         }
