@@ -14,7 +14,7 @@ const cagnotteManager = new CagnotteManager(client)
 const aperallManager = new AperallManager(client)
 
 app.command("/cagnotte", async({ command, ack, say }) => {
-    await ack();
+    await ack()
 
     try {
         await cagnotteManager.createCagnotte(command)
@@ -24,7 +24,7 @@ app.command("/cagnotte", async({ command, ack, say }) => {
 });
 
 app.action('exclude_user', async({ action, ack, say }) => {
-    await ack();
+    await ack()
     await cagnotteManager.handleExcludeUser(action)
 });
 
@@ -39,7 +39,7 @@ app.action('invite', async({ action, ack, say }) => {
 });
 
 app.command("/aperall", async({ command, ack, say }) => {
-    await ack();
+    await ack()
 
     try {
         const response = await aperallManager.handleAperallCommand(command)

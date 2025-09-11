@@ -46,6 +46,7 @@ class AperallManager {
     }
 
     async handleAperallCommand(command) {
+        console.log(command)
         const args = command.text ? command.text.split(' ') : []
 
         if (args[0] === 'reset' && command.user_id === process.env.APERALL_ADMIN_USER_ID) {
