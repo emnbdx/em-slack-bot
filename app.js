@@ -13,13 +13,13 @@ const client = new WebClient(process.env.SLACK_BOT_TOKEN)
 const cagnotteManager = new CagnotteManager(client)
 const aperallManager = new AperallManager(client)
 
-app.command("/cagnotte", async({ command, ack, say }) => {
+app.command("/cagnotte", async({ command, ack, respond }) => {
     await ack()
 
     try {
         await cagnotteManager.createCagnotte(command)
     } catch (e) {
-        await say(e.message)
+        await respond({ text: `❌ Erreur : ${e.message}`, response_type: 'ephemeral' })
     }
 });
 
@@ -38,14 +38,14 @@ app.action('invite', async({ action, ack, say }) => {
     await cagnotteManager.handleInvite(action)
 });
 
-app.command("/aperall", async({ command, ack, say }) => {
+app.command("/aperall", async({ command, ack, respond }) => {
     await ack()
 
     try {
         const response = await aperallManager.handleAperallCommand(command)
-        await say(response)
+        await respond({ text: response, response_type: 'ephemeral' })
     } catch (e) {
-        await say(`❌ Erreur : ${e.message}`)
+        await respond({ text: `❌ Erreur : ${e.message}`, response_type: 'ephemeral' })
     }
 });
 
