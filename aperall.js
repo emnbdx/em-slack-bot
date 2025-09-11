@@ -46,6 +46,8 @@ class AperallManager {
     }
 
     async handleAperallCommand(command) {
+        const args = command.text ? command.text.split(' ') : []
+
         if (args[0] === 'reset' && command.user_id === process.env.APERALL_ADMIN_USER_ID) {
             return await this.resetData()
         }
@@ -58,7 +60,6 @@ class AperallManager {
 
         const now = new Date()
         const hour = now.getHours()
-        const args = command.text ? command.text.split(' ') : []
 
         if (args.length === 0) {
             if (hour < 18) {
@@ -209,14 +210,20 @@ class AperallManager {
 
     async getChannelMembers(channelId) {
         const result = await this.client.conversations.members({ channel: channelId })
-        return result.members.filter(async(id) => {
+        const members = []
+
+        for (const id of result.members) {
             try {
                 const userInfo = await this.client.users.info({ user: id })
-                return !userInfo.user.deleted && !userInfo.user.is_bot
+                if (!userInfo.user.deleted && !userInfo.user.is_bot) {
+                    members.push(id)
+                }
             } catch {
-                return false
+                // Ignore les erreurs et continue
             }
-        })
+        }
+
+        return members
     }
 
     async resetData() {
