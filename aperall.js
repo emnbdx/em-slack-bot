@@ -60,9 +60,11 @@ class AperallManager {
 
         const now = new Date()
         const hour = now.getHours()
+        console.log('Debug heure serveur:', now.toISOString(), 'heure locale:', hour)
 
         if (args.length === 0) {
             const timeStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+            console.log('Time string:', timeStr)
 
             if (hour >= 0 && hour < 9) {
                 const messages = [
