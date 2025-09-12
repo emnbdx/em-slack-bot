@@ -55,7 +55,9 @@ app.command("/aperall", async({ command, ack, respond }) => {
     console.log(`⚡️ Slack Bolt app is running on port ${port}!`)
 
     const now = new Date()
-    const hour = now.getHours()
+    const frTime = new Date(now.toLocaleString("fr-FR", { timeZone: "Europe/Paris" }))
+    const hour = frTime.getHours()
+
     console.log('Debug heure serveur:', now.toISOString(), 'heure locale:', hour)
     const timeStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
     console.log('Time string:', timeStr)

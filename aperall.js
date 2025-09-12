@@ -59,7 +59,8 @@ class AperallManager {
         }
 
         const now = new Date()
-        const hour = now.getHours()
+        const frTime = new Date(now.toLocaleString("fr-FR", { timeZone: "Europe/Paris" }))
+        const hour = frTime.getHours()
 
         if (args.length === 0) {
             const timeStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
