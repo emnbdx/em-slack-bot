@@ -63,7 +63,7 @@ class AperallManager {
         const hour = frTime.getHours()
 
         if (args.length === 0) {
-            const timeStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+            const timeStr = frTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
 
             if (hour >= 0 && hour < 9) {
                 const messages = [

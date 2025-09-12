@@ -43,7 +43,7 @@ app.command("/aperall", async({ command, ack, respond }) => {
 
     try {
         const response = await aperallManager.handleAperallCommand(command)
-        await respond({ text: response, response_type: 'ephemeral' })
+        await respond({ text: response, response_type: 'in_channel' })
     } catch (e) {
         await respond({ text: `❌ Erreur : ${e.message}`, response_type: 'ephemeral' })
     }
