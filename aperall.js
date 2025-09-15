@@ -116,7 +116,11 @@ class AperallManager {
             return await this.handleRefusal(command)
         }
 
-        return "❓ Commande inconnue. Utilisez /aperall, /aperall cki ou /aperall cmort"
+        if (args[0] === 'cmoi') {
+            return await this.handleTakeOver(command)
+        }
+
+        return "❓ Commande inconnue. Utilisez /aperall, /aperall cki, /aperall cmort ou /aperall cmoi @user"
     }
 
     getCurrentMonth() {
@@ -245,6 +249,41 @@ class AperallManager {
 
             const organizers = this.organizers[channelId].map(id => `<@${id}>`).join(' et ')
             return `🔄 <@${userId}> a été remplacé par <@${newOrganizer}> !\n\nLes organisateurs du prochain apérall sont : ${organizers}`
+        } catch (error) {
+            return `❌ Erreur lors du remplacement : ${error.message}`
+        }
+    }
+
+    async handleTakeOver(command) {
+        const channelId = command.channel_id
+        const userId = command.user_id
+        const args = command.text ? command.text.split(' ') : []
+
+        if (args.length < 2) {
+            return "❌ Utilisation : /aperall cmoi @user"
+        }
+
+        const targetUser = args[1].replace(/[<@>]/g, '')
+
+        if (!this.organizers[channelId] || this.organizers[channelId].length === 0) {
+            return "❌ Aucune assignation en cours. Utilisez d'abord /aperall cki pour sélectionner les organisateurs"
+        }
+
+        if (!this.organizers[channelId].includes(targetUser)) {
+            return "❌ Cette personne n'est pas dans la liste des organisateurs actuels"
+        }
+
+        if (this.organizers[channelId].includes(userId)) {
+            return "❌ Vous êtes déjà dans la liste des organisateurs"
+        }
+
+        try {
+            const organizerIndex = this.organizers[channelId].indexOf(targetUser)
+            this.organizers[channelId][organizerIndex] = userId
+            await this.saveData()
+
+            const organizers = this.organizers[channelId].map(id => `<@${id}>`).join(' et ')
+            return `🔄 <@${userId}> a pris la place de <@${targetUser}> !\n\nLes organisateurs du prochain apérall sont : ${organizers}`
         } catch (error) {
             return `❌ Erreur lors du remplacement : ${error.message}`
         }
