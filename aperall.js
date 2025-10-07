@@ -259,6 +259,8 @@ class AperallManager {
         const userId = command.user_id
         const args = command.text ? command.text.split(' ') : []
 
+        console.log(command)
+
         if (args.length < 2) {
             return "❌ Utilisation : /aperall cmoi @user"
         }
