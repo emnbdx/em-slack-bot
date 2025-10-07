@@ -266,6 +266,7 @@ class AperallManager {
         }
 
         const targetUser = args[1].replace(/[<@>]/g, '')
+        console.log(targetUser)
 
         if (!this.organizers[channelId] || this.organizers[channelId].length === 0) {
             return "❌ Aucune assignation en cours. Utilisez d'abord /aperall cki pour sélectionner les organisateurs"
