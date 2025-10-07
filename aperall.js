@@ -259,14 +259,11 @@ class AperallManager {
         const userId = command.user_id
         const args = command.text ? command.text.split(' ') : []
 
-        console.log(command)
-
         if (args.length < 2) {
             return "❌ Utilisation : /aperall cmoi @user"
         }
 
         let targetUser = args[1].replace(/[<@>]/g, '')
-        console.log(targetUser)
 
         if (!this.organizers[channelId] || this.organizers[channelId].length === 0) {
             return "❌ Aucune assignation en cours. Utilisez d'abord /aperall cki pour sélectionner les organisateurs"
@@ -286,7 +283,7 @@ class AperallManager {
                     const user = usersList.members.find(member =>
                         member.name === targetUser ||
                         member.real_name === targetUser ||
-                        member.profile ? .display_name === targetUser
+                        (member.profile && member.profile.display_name === targetUser)
                     )
                     if (user) {
                         targetUser = user.id
