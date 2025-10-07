@@ -265,15 +265,11 @@ class AperallManager {
             return "❌ Utilisation : /aperall cmoi @user"
         }
 
-        const targetUser = args[1].replace(/[<@>]/g, '')
+        let targetUser = args[1].replace(/[<@>]/g, '')
         console.log(targetUser)
 
         if (!this.organizers[channelId] || this.organizers[channelId].length === 0) {
             return "❌ Aucune assignation en cours. Utilisez d'abord /aperall cki pour sélectionner les organisateurs"
-        }
-
-        if (!this.organizers[channelId].includes(targetUser)) {
-            return "❌ Cette personne n'est pas dans la liste des organisateurs actuels"
         }
 
         if (this.organizers[channelId].includes(userId)) {
@@ -281,6 +277,29 @@ class AperallManager {
         }
 
         try {
+            if (!targetUser.startsWith('U')) {
+                const userInfo = await this.client.users.lookupByEmail({ email: targetUser + '@' + process.env.SLACK_DOMAIN })
+                if (userInfo.user) {
+                    targetUser = userInfo.user.id
+                } else {
+                    const usersList = await this.client.users.list()
+                    const user = usersList.members.find(member =>
+                        member.name === targetUser ||
+                        member.real_name === targetUser ||
+                        member.profile ? .display_name === targetUser
+                    )
+                    if (user) {
+                        targetUser = user.id
+                    } else {
+                        return "❌ Utilisateur non trouvé. Vérifiez le pseudo ou utilisez l'ID utilisateur"
+                    }
+                }
+            }
+
+            if (!this.organizers[channelId].includes(targetUser)) {
+                return "❌ Cette personne n'est pas dans la liste des organisateurs actuels"
+            }
+
             const organizerIndex = this.organizers[channelId].indexOf(targetUser)
             this.organizers[channelId][organizerIndex] = userId
             await this.saveData()
