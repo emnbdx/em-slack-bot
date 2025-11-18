@@ -1,7 +1,9 @@
 const { App } = require("@slack/bolt")
 const { WebClient } = require('@slack/web-api')
+const cron = require('node-cron')
 const CagnotteManager = require('./cagnotte')
 const AperallManager = require('./aperall')
+const BirthdayManager = require('./birthday')
 require("dotenv").config()
 
 const app = new App({
@@ -12,6 +14,7 @@ const client = new WebClient(process.env.SLACK_BOT_TOKEN)
 
 const cagnotteManager = new CagnotteManager(client)
 const aperallManager = new AperallManager(client)
+const birthdayManager = new BirthdayManager(client)
 
 app.command("/cagnotte", async({ command, ack, respond }) => {
     await ack()
@@ -53,4 +56,12 @@ app.command("/aperall", async({ command, ack, respond }) => {
     const port = process.env.PORT || 3000
     await app.start(port)
     console.log(`⚡️ Slack Bolt app is running on port ${port}!`)
+
+    cron.schedule('0 10 * * *', async () => {
+        console.log('Vérification des anniversaires...')
+        await birthdayManager.checkAndSendBirthdays()
+    }, {
+        timezone: "Europe/Paris"
+    })
+    console.log('📅 Cron job d\'anniversaires configuré pour 10h (Europe/Paris)')
 })();
