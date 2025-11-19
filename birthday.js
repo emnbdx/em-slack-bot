@@ -1,5 +1,6 @@
 const { WebClient } = require('@slack/web-api')
-const https = require('https')
+const fs = require('fs').promises
+const path = require('path')
 const dayjs = require('dayjs')
 const customParseFormat = require('dayjs/plugin/customParseFormat')
 const OpenAI = require('openai')
@@ -10,60 +11,7 @@ class BirthdayManager {
     constructor(client) {
         this.client = client
         this.openai = process.env.OPENAI_API_KEY ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY }) : null
-    }
-
-    async fetchGoogleSheet(id) {
-        return new Promise((resolve, reject) => {
-            const csvUrl = `https://docs.google.com/spreadsheets/d/${id}/export?format=csv`
-            
-            https.get(csvUrl, (res) => {
-                if (res.statusCode !== 200) {
-                    reject(new Error(`Erreur HTTP: ${res.statusCode}`))
-                    return
-                }
-
-                let data = ''
-                res.on('data', (chunk) => {
-                    data += chunk
-                })
-
-                res.on('end', () => {
-                    resolve(data)
-                })
-            }).on('error', (err) => {
-                reject(err)
-            })
-        })
-    }
-
-    parseCSV(csvData) {
-        const lines = csvData.split('\n').filter(line => line.trim())
-        const birthdays = []
-
-        for (let i = 1; i < lines.length; i++) {
-            const line = lines[i]
-            const columns = this.parseCSVLine(line)
-            
-            if (columns.length >= 2) {
-                const nom = columns[0].trim()
-                const dateStr = columns[1].trim()
-                
-                if (nom && dateStr) {
-                    try {
-                        var date = dayjs(dateStr, 'DD/MM/YYYY', true)
-                        date = date.isValid() ? date.toDate() : null
-
-                        if (date) {
-                            birthdays.push({ nom, date })
-                        }
-                    } catch (e) {
-                        console.error(`Erreur parsing date pour ${nom}: ${dateStr}`, e)
-                    }
-                }
-            }
-        }
-
-        return birthdays
+        this.dataFile = path.join(__dirname, 'data', 'birthday.csv')
     }
 
     parseCSVLine(line) {
@@ -88,6 +36,51 @@ class BirthdayManager {
         return columns.map(col => col.replace(/^"|"$/g, ''))
     }
 
+    parseCSV(csvData) {
+        const lines = csvData.split('\n').filter(line => line.trim())
+        const birthdays = []
+
+        for (let i = 1; i < lines.length; i++) {
+            const line = lines[i]
+            const columns = this.parseCSVLine(line)
+            
+            if (columns.length >= 3) {
+                const id = columns[0].trim()
+                const nom = columns[1].trim()
+                const dateStr = columns[2].trim()
+                
+                if (id && nom && dateStr) {
+                    try {
+                        var date = dayjs(dateStr, 'DD/MM/YYYY', true)
+                        date = date.isValid() ? date.toDate() : null
+
+                        if (date) {
+                            birthdays.push({ id, nom, date })
+                        }
+                    } catch (e) {
+                        console.error(`Erreur parsing date pour ${nom}: ${dateStr}`, e)
+                    }
+                }
+            }
+        }
+
+        return birthdays
+    }
+
+    async loadBirthdays() {
+        try {
+            const csvData = await fs.readFile(this.dataFile, 'utf8')
+            return this.parseCSV(csvData)
+        } catch (error) {
+            if (error.code === 'ENOENT') {
+                console.error(`Fichier ${this.dataFile} non trouvé`)
+                return []
+            }
+            console.error('Erreur lors du chargement des anniversaires:', error)
+            return []
+        }
+    }
+
     getTodayBirthdays(birthdays) {
         const today = dayjs()
 
@@ -97,73 +90,64 @@ class BirthdayManager {
         })
     }
 
-    async generateBirthdayMessage(noms) {
-        const nomsList = Array.isArray(noms) ? noms : [noms]
-        const nomsStr = nomsList.length === 1 
-            ? nomsList[0] 
-            : nomsList.slice(0, -1).join(', ') + ' et ' + nomsList[nomsList.length - 1]
+    async generateBirthdayMessage(birthdays) {
+        const birthdaysList = Array.isArray(birthdays) ? birthdays : [birthdays]
+        const ids = birthdaysList.map(b => b.id)
+        const mentions = ids.map(id => `<@${id}>`).join(', ')
 
         if (!this.openai) {
-            if (nomsList.length === 1) {
-                return `🎉 Joyeux anniversaire ${nomsStr} ! :birthday::gift::confetti_ball:`
+            if (birthdaysList.length === 1) {
+                return `🎉 Joyeux anniversaire ${mentions} ! :birthday::gift::confetti_ball:`
             } else {
-                return `🎉 Joyeux anniversaire à ${nomsStr} ! :birthday::gift::confetti_ball:`
+                return `🎉 Joyeux anniversaire à ${mentions} ! :birthday::gift::confetti_ball:`
             }
         }
 
         try {
             const examples = [
-                "On commence la semaine avec l'anniversaire de notre grande performeuse [NOM], merci de lui envoyer une montagne d'amour :birthday::gift::confetti_ball:",
-                "C'est l'heure de fêter un nouveau venu parmi les traileurs HelloAsso: Joyeux anniversaire à [NOM] :partying_face::gift::birthday:",
-                "On pense à ne pas partir sans une pensée pour [NOM] qui fête son Birthday today. Très joyeux anniversaire à elle :partying_face::gift::birthday:"
+                "On commence la semaine avec l'anniversaire de notre grande performeuse [NOM], merci de lui envoyer une montagne d'amour",
+                "C'est l'heure de fêter un nouveau venu parmi les traileurs HelloAsso: Joyeux anniversaire à [NOM]",
+                "On pense à ne pas partir sans une pensée pour [NOM] qui fête son Birthday today. Très joyeux anniversaire à elle"
             ]
 
-            const prompt = nomsList.length === 1
-                ? `Génère un message d'anniversaire original et sympa pour ${nomsStr}. Le message doit être différent des exemples et inclure des emojis.`
-                : `Génère un message d'anniversaire original et sympa pour ${nomsList.length} personnes : ${nomsStr}. Le message doit mentionner toutes les personnes et être différent des exemples. Inclus des emojis.`
+            const prompt = birthdaysList.length === 1
+                ? `Génère un message d'anniversaire original et sympa pour ${mentions}. Le message doit être différent des exemples.`
+                : `Génère un message d'anniversaire original et sympa pour ${birthdaysList.length} personnes : ${mentions}. Le message doit mentionner toutes les personnes et être différent des exemples.`
 
             const completion = await this.openai.chat.completions.create({
                 model: "gpt-5-nano",
                 messages: [
                     {
                         role: "developer",
-                        content: "Tu es un bot qui écrit des messages d'anniversaire sympas et originaux pour Slack. Les messages doivent être variés, créatifs, et inclure des emojis comme :birthday:, :gift:, :confetti_ball:, :partying_face:. Mentionne les personnes avec @Nom. Sois original et varie les styles. Fais juste une phrase."
+                        content: "Tu es un bot qui écrit des messages d'anniversaire sympas et originaux pour Slack. Les messages doivent être variés, créatifs, et inclure des emojis. Sois original et varie les styles. Fais juste une phrase."
                     },
                     {
                         role: "user",
                         content: `Voici des exemples de messages d'anniversaire:\n${examples.map((ex, i) => `${i + 1}. ${ex}`).join('\n')}\n\n${prompt}`
                     }
-                ],
-                temperature: 0.9
+                ]
             })
 
             return completion.choices[0].message.content.trim()
         } catch (error) {
             console.error('Erreur lors de la génération du message OpenAI:', error)
-            if (nomsList.length === 1) {
-                return `🎉 Joyeux anniversaire ${nomsStr} ! :birthday::gift::confetti_ball:`
+            if (birthdaysList.length === 1) {
+                return `🎉 Joyeux anniversaire ${mentions} ! :birthday::gift::confetti_ball:`
             } else {
-                return `🎉 Joyeux anniversaire à ${nomsStr} ! :birthday::gift::confetti_ball:`
+                return `🎉 Joyeux anniversaire à ${mentions} ! :birthday::gift::confetti_ball:`
             }
         }
     }
 
     async checkAndSendBirthdays() {
         try {
-            const sheetId = process.env.GOOGLE_SHEET_ID
-            if (!sheetId) {
-                console.error('GOOGLE_SHEET_ID non configuré dans .env')
-                return
-            }
-
             const channelId = process.env.SLACK_BIRTHDAY_CHAN
             if (!channelId) {
                 console.error('SLACK_BIRTHDAY_CHAN non configuré dans .env')
                 return
             }
 
-            const csvData = await this.fetchGoogleSheet(sheetId)
-            const birthdays = this.parseCSV(csvData)
+            const birthdays = await this.loadBirthdays()
             const todayBirthdays = this.getTodayBirthdays(birthdays)
 
             if (todayBirthdays.length === 0) {
@@ -171,8 +155,7 @@ class BirthdayManager {
                 return
             }
 
-            const noms = todayBirthdays.map(birthday => birthday.nom)
-            const message = await this.generateBirthdayMessage(noms)
+            const message = await this.generateBirthdayMessage(todayBirthdays)
 
             await this.client.chat.postMessage({
                 channel: channelId,
