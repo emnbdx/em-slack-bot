@@ -104,26 +104,29 @@ class BirthdayManager {
         }
 
         try {
-            const examples = [
-                "On commence la semaine avec l'anniversaire de notre grande performeuse [NOM], merci de lui envoyer une montagne d'amour",
-                "C'est l'heure de fêter un nouveau venu parmi les traileurs HelloAsso: Joyeux anniversaire à [NOM]",
-                "On pense à ne pas partir sans une pensée pour [NOM] qui fête son Birthday today. Très joyeux anniversaire à elle"
-            ]
-
             const prompt = birthdaysList.length === 1
-                ? `Génère un message d'anniversaire original et sympa pour ${mentions}. Le message doit être différent des exemples.`
-                : `Génère un message d'anniversaire original et sympa pour ${birthdaysList.length} personnes : ${mentions}. Le message doit mentionner toutes les personnes et être différent des exemples.`
+                ? `Génère un message d'anniversaire original et sympa pour ${mentions}.`
+                : `Génère un message d'anniversaire original et sympa pour ${birthdaysList.length} personnes : ${mentions}. Le message doit mentionner toutes les personnes.`
 
             const completion = await this.openai.chat.completions.create({
                 model: "gpt-5-nano",
                 messages: [
                     {
                         role: "developer",
-                        content: "Tu es un bot qui écrit des messages d'anniversaire sympas et originaux pour Slack. Les messages doivent être variés, créatifs, et inclure des emojis. Sois original et varie les styles. Fais juste une phrase."
+                        content: [ "Tu écris des messages d'anniversaire pour Slack.",
+                                    "Contraintes:",
+                                    "- Une seule phrase courte (max ~25 mots).",
+                                    "- Ton chaleureux, fun, naturel, pas guindé.",
+                                    "- Inclure 1 à 3 emojis adaptés.",
+                                    "- Toujours inclure EXACTEMENT tous les @mentions fournies, sans en inventer ni en oublier.",
+                                    "- Pas de liste à puces, pas de retour ligne, pas de guillemets.",
+                                    "- Varier le style d'un message à l'autre (éviter les clichés type 'joyeux anniv' seuls).",
+                                    "Si plusieurs personnes: le message doit rester une phrase fluide et collective."
+                                ].join("\n")
                     },
                     {
                         role: "user",
-                        content: `Voici des exemples de messages d'anniversaire:\n${examples.map((ex, i) => `${i + 1}. ${ex}`).join('\n')}\n\n${prompt}`
+                        content: prompt
                     }
                 ]
             })
